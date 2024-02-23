@@ -14,7 +14,6 @@ init_slab_depth     = 500     # km
 init_rad_curvature  = 250.    # km
 slab_halfwidth      = 1000.   # km
 op_thickness        = 50.     # km
-lower_mantle_velocity  =  0   # m/s
 #################################
 # set mechanical variables
 slab_density        = 3400.    # kg/m3    
