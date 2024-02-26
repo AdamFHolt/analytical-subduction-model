@@ -4,7 +4,7 @@
 # from functions import plot_slab_shape, solve_slab_velocities
 
 ### JUST TESTING ###
-
+### TWEAKS 3 line ###
 
 def initialize_slab_geometry(slab_thickness,init_rad_curvature,init_slab_depth,init_slab_dip):
 	slab_coords=1. # temp
