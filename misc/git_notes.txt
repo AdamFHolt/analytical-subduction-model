@@ -65,7 +65,7 @@ git clone https://AdamFHolt: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@github.com/
 # compare main (remote) with origin/main (github)
 git fetch
 git status # to see differences
-git pull   # to update
+git pull   # to update (this is shorthand for "git pull origin main")
 # see the remote url (to check you are fetching from/pushing to the right place)
 git remove -v
 ~                                            
