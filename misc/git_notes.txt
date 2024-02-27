@@ -1,0 +1,71 @@
+# nice tutorial: https://www.youtube.com/watch?v=RIYrfkZjWmA&list=PLzAGFfNxKFuZxcjt0DuLj-U_1pV5NRHRs&index=7
+
+# create github repository
+git init  # (inside the created directory)
+
+# check status of repo files
+git status
+
+### EDITING FILES IN YOUR REPOSITORY
+# add file to staging area (e.g., for "driver.py")
+git add driver.py
+# add all files
+git add .git push -u origin main
+# remove file from staging area
+git rm --cached driver.py
+# why have a git staging area?
+- extra security (promotes an additional layer of review)
+- facilitates separate commits (for organization).
+# now, committing.
+git commit -m "initial commits"
+
+### CHECKING OUT PREVIOUS COMMITS
+# see commit history (all the different commit ids, authors, times, comments)
+git log
+git log --oneline  # condensed version
+# go to a previous commit (readonly)
+git checkout 69612bc
+# go back to the master (i.e., to the "top of the stack")
+git checkout master
+# revert a commit (i.e., undoes a commit)
+git revert 69612bc
+# remove all commits after a certain commit (but retain changes in the editor/locally)
+git reset 69612bc
+# remove all commits after a certain commit (AND remove changes in the editor/locally)
+git reset 69612bc --hard
+
+### BRANCHES
+# initialize new branch (e.g., called "toroidal")
+git branch toroidal
+# look at all branches
+git branch -a
+# switch branch
+git checkout toroidal
+# shorthand to combine the prev. 2 commands:
+git checkout -b toroidal
+# compare branches
+git diff main toroidal
+# delete branch (after going back to master: "git checkout master")
+git branch -D toroidal
+# merging branch (after going back to master: "git checkout master")
+git merge toroidal
+# push branch commits into the main repo
+git push origin toroidal
+# or just
+git push # (after merge)
+
+
+### GITHUB
+# push code (main branch) up to github
+git remote add origin https://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@github.com/AdamFHolt/Analytical-Subduction.git
+git branch -M main
+git push -u origin main
+# clone (i.e. download) a github repository
+git clone https://AdamFHolt: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@github.com/AdamFHolt/analytical-subduction-model.git
+# compare main (remote) with origin/main (github)
+git fetch
+git status # to see differences
+git pull   # to update
+# see the remote url (to check you are fetching from/pushing to the right place)
+git remove -v
+~                                            
