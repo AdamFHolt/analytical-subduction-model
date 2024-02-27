@@ -8,6 +8,9 @@ def initialize_slab_geometry(slab_thickness,init_rad_curvature,init_slab_depth,i
 	slab_coords=1. # temp
 	return(slab_coords)
 
+def solve_slab_velocities(...):
+	...
+	return(???)
 
 def evolve_slab_geometry(slab_coords, slab_vels, dt_myrs):
 	slab_coords=1. # temp
@@ -17,8 +20,6 @@ def evolve_slab_geometry(slab_coords, slab_vels, dt_myrs):
 def plot_slab_shape(slab_coords, plot_filename):
 	pass
 
-# def solve_slab_velocities(...):
-# 	...
-# 	return(???)
+
 
 
