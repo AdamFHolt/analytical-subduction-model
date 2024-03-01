@@ -70,7 +70,7 @@ for p in range(len(x)):
            
             Pressure[p, q] += array_A[i] * (x[p] - xi) / ((x[p] - xi) ** 2 + (y[q] - yi[i]) ** 2)
 """
-#Pressure = calculate_pressure(x, y, yi, array_A,xi)
+Pressure = calculate_pressure(x, y, yi, array_A,xi)
 print(Pressure.shape,Pressure)
 
 T2=time.time()
