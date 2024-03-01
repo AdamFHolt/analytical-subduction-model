@@ -59,17 +59,10 @@ def calculate_pressure(x, y, yi, array_A,xi):
         for q in range(len(y)):
             for i in range(len(yi)):
                 denominator = (x[p] - xi) ** 2 + (y[q] - yi[i]) ** 2
-                Pressure[p, q] += array_A[i] * (x[p] - xi) / ((x[p] - xi) ** 2 + (y[q] - yi[i]) ** 2)
+                if denominator != 0:
+                    Pressure[p, q] += array_A[i] * (x[p] - xi) / ((x[p] - xi) ** 2 + (y[q] - yi[i]) ** 2)
     return Pressure
 
-"""
-for p in range(len(x)):
-    for q in range(len(y)):
-        for i in range(len(yi)):
-           # matrix_A_i = float(array_A[i])
-           
-            Pressure[p, q] += array_A[i] * (x[p] - xi) / ((x[p] - xi) ** 2 + (y[q] - yi[i]) ** 2)
-"""
 Pressure = calculate_pressure(x, y, yi, array_A,xi)
 print(Pressure.shape,Pressure)
 
