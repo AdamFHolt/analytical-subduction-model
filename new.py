@@ -16,6 +16,7 @@ Vm = 0  # cm/yr
 Vr = 3. # cm/yr
 cmyr_to_ms = 1. / (365.25 * 24 * 60 * 60)  # Conversion factor from cm/yr to m/s
 Vt, Vm, Vr = Vt * cmyr_to_ms, Vm * cmyr_to_ms, Vr * cmyr_to_ms
+print(Vr)
 viscosity = 1.e20  # N*s / m2
 a = 500e3 # km--> m  half-width of slab
 
@@ -27,74 +28,55 @@ yi = np.linspace(-a, a,  int(2*a/2e3)+1, endpoint=True)
 x = np.linspace(-4*a, 4*a, int(8*a/10e3)+1)
 y = np.linspace(-4*a, 4*a, int(8*a/10e3)+1)      
 
+import matplotlib.pyplot as plt
+plt.figure(figsize=(6,6))
+plt.scatter([xi]*len(yi), yi, color='r', label='Slab points')
+plt.xlim([x.min(), x.max()])
+plt.ylim([y.min(), y.max()])
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.title('Slab Points on the X-Y Domain')
+plt.legend()
+plt.grid(True)
+plt.savefig("a.png")
 
 # solve matrix equation [B][A]=[C]
 matrix_C = np.zeros_like(yi)
 matrix_C[:] = (Vr - ( Vt + Vm )/2 )  * 12 * viscosity / (lam **2)
 matrix_C = matrix_C.reshape(-1,1)  # transform from list to array, to avoid format warning from python
 
-
 matrix_B = np.zeros((len(yi), len(yi)))
+matrix_B[:] = np.nan
 for i in range(len(yi)):
     for j in range(len(yi)):
-        matrix_B[i, j] =   - ((yi[i] - yi[j])**2) / (yi[i] - yi[j])**2
+        if (yi[i] - yi[j])==0: 
+            matrix_B[i, j] = 0
+        else:
+            matrix_B[i, j] =   - 1 / (yi[i] - yi[j])**2
 
 matrix_B = np.nan_to_num(matrix_B)  #  there is situation that denominator is 0, replace nan with 0 to avoid error message from following solve function
-
+print(matrix_B.shape)
 
 matrix_A = solve(matrix_B,matrix_C)
+print(matrix_A.shape)
 array_A = matrix_A.reshape(len(matrix_A[:,0]))  # transform from list to array, to avoid format warning from python
-print(array_A.shape)
+#print(array_A)
 
 # calculate the Pressure
 @jit(nopython=True)
 def calculate_pressure(x, y, yi, array_A,xi):
-    Pressure = np.zeros((len(x), len(y)))
-    for p in range(len(x)):
-       # print(p)
-        for q in range(len(y)):
+    Pressure = np.zeros((len(y), len(x)))   # len(y) is the number of rows (height of the array, corresponding to the y-axis), and len(x) is the number of columns (width of the array, corresponding to the x-axis).
+    for p in range(len(y)):
+        for q in range(len(x)):
             for i in range(len(yi)):
-                denominator = (x[p] - xi) ** 2 + (y[q] - yi[i]) ** 2
+                denominator = (x[q] - xi) ** 2 + (y[p] - yi[i]) ** 2
                 if denominator != 0:
-                    Pressure[p, q] += array_A[i] * (x[p] - xi) / denominator 
+                    Pressure[p, q] += array_A[i] * (x[q] - xi) / denominator 
     return Pressure
 
 Pressure = calculate_pressure(x, y, yi, array_A,xi)
+print(Pressure.shape)
 
-T2=time.time()
-
-# calculate the Vx and Vy
-@jit(nopython=True)
-def calculate_vx(x, y, yi, array_A,xi):
-    vx = np.zeros((len(x), len(y)))
-    for p in range(len(x)):
-        for q in range(len(y)):
-            for i in range(len(yi)):
-                denominator = (x[p] - xi) ** 2 + (y[q] - yi[i]) ** 2
-                if denominator != 0:
-                    vx[p, q] +=   array_A[i] * (lam **2)/ (12 * viscosity) * ((x[p] - xi) ** 2 - (y[q] - yi[i]) ** 2) / ( (x[p] - xi) ** 2 + (y[q] - yi[i]) ** 2)
-    return vx
-
-vx = calculate_vx(x, y, yi, array_A,xi)
-
-#print("vx",vx)
-
-@jit(nopython=True)
-def calculate_vy(x, y, yi, array_A,xi):
-    vy = np.zeros((len(x), len(y)))
-    for p in range(len(x)):
-        for q in range(len(y)):
-            for i in range(len(yi)):
-                denominator = (x[p] - xi) ** 2 + (y[q] - yi[i]) ** 2
-                if denominator != 0:
-                    vy[p, q] += (Vt+Vm)/2  - (lam **2) / (12 * viscosity)   *  (-2 * array_A[i] * (x[p] - xi) * (y[q] - yi[i]) )  /   ( (x[p] - xi) ** 2 + (y[q] - yi[i]) ** 2) 
-    return vy
-
-vy = calculate_vy(x, y, yi, array_A,xi)
-#print(vy)
-
-
-import matplotlib.pyplot as plt
 
 #normalized pressure
 max_pressure = np.max(Pressure)
@@ -102,57 +84,58 @@ normalized_pressure = Pressure / max_pressure
 
 # Save the normalized pressure field as an image
 plt.imshow(normalized_pressure, cmap='viridis', extent=[x.min(), x.max(), y.min(), y.max()])
-
-
-# Plot velocity vectors
 plt.colorbar(label='Normalized Pressure')
 plt.xlabel('X')
 plt.ylabel('Y')
 plt.title('Normalized Pressure Field (Maximum Pressure = 1)')
 plt.savefig("normalized_pressure.png")
+T2=time.time()
+plt.close()
 
 
+# calculate the Vx and Vy
+@jit(nopython=True)
+def calculate_vx(x, y, yi, array_A,xi):
+    vx = np.zeros((len(y), len(x)))   # len(y) is the number of rows (height of the array, corresponding to the y-axis), and len(x) is the number of columns (width of the array, corresponding to the x-axis).
+    for p in range(len(y)):
+        for q in range(len(x)):
+            for i in range(len(yi)):
+                denominator =   (x[q] - xi) ** 2 + (y[p] - yi[i]) ** 2
+                coefficient = (lam **2)/ (12 * viscosity)
+                if denominator != 0:
+                    vx[p, q] += ( (Vt+Vm)/2 - array_A[i] * coefficient * ( (y[p] - yi[i]) ** 2 -(x[q] - xi) ** 2 ) / ( (x[q] - xi) ** 2 + (y[p] - yi[i]) ** 2)**2 ) /Vr
+                
+    return vx
 
-plt.quiver(x[::50], y[::50], vy[::50,::50] ,vx[::50,::50])
+vx = calculate_vx(x, y, yi, array_A,xi)
+print(np.max(vx),np.min(vx))
+
+print("vx",vx.shape)
+
+@jit(nopython=True)
+def calculate_vy(x, y, yi, array_A,xi):
+    vy = np.zeros((len(y), len(x)))
+    for p in range(len(y)):
+        for q in range(len(x)):
+            for i in range(len(yi)):
+                coefficient = (lam **2)/ (12 * viscosity)
+                denominator =  (x[q] - xi) ** 2 + (y[p] - yi[i]) ** 2
+                if denominator != 0:
+                    vy[p, q] += ( coefficient   *  (2 * array_A[i] * (x[q] - xi) * (y[p] - yi[i]) )  /   ( (x[q] - xi) ** 2 + (y[p] - yi[i]) ** 2) **2 ) /Vr
+             
+    return vy
+
+vy = calculate_vy(x, y, yi, array_A,xi)
+print(vy.shape)
+print(np.max(vy),np.min(vy))
+# Save the normalized pressure field as an image
+plt.imshow(normalized_pressure, cmap='viridis', extent=[x.min(), x.max(), y.min(), y.max()])
+
+
+# Plot velocity vectors
+plt.quiver(x[::10], y[::10], vx[::10,::10], vy[::10,::10],scale=0.1)
 plt.xlabel('X')
 plt.ylabel('Y')
+plt.colorbar(label='Normalized Pressure')
 plt.title('Velocity Vectors')
 plt.savefig("velocity_vectors.png")
-
-plt.close()
-
-
-
-normalized_pressure_along_y0 = normalized_pressure[:, np.abs(y).argmin()]
-# Plot normalized pressure data along the line y=0
-plt.plot(x, normalized_pressure_along_y0)
-plt.xlabel('X')
-plt.ylabel('Normalized Pressure')
-plt.title('Normalized Pressure along y=0')
-plt.savefig("Normalized_Pressure_along_y=0.png")
-plt.close()
-
-Pressure_in_paper = np.zeros_like(x)
-Pressure_in_paper[:] =  12 * viscosity * a /(lam**2) * (Vr -(Vt+Vm)/2)  * np.exp(-0.9 * (x[:]/a)**0.8)
-
-Pressure_in_paper = np.nan_to_num(Pressure_in_paper) 
-max_pressure = np.max(Pressure_in_paper)
-normalized_Pressure_in_paper= Pressure_in_paper / max_pressure
-plt.plot(x, normalized_Pressure_in_paper)
-#print(normalized_Pressure_in_paper)
-plt.xlabel('X')
-plt.ylabel('normalized_Pressure_in_paper')
-plt.title('normalized_Pressure_in_paper')
-plt.savefig("normalized_Pressure_in_paper.png")
-plt.close()
-
-
-Pressure = Pressure[:, np.abs(y).argmin()]
-plt.plot(x, Pressure_in_paper, label='Pressure in Paper')
-plt.plot(x, Pressure, label='Pressure')
-plt.xlabel('X')
-plt.ylabel('Normalized Pressure')
-plt.title('Comparison of Normalized Pressure')
-plt.legend()
-plt.savefig("normalized_Pressure_comparison.png")
-plt.close()
