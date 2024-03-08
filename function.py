@@ -1,80 +1,135 @@
 #!/usr/bin/python3
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 
 
-# from functions import initialize_slab_geometry, evolve_slab_geometry
-# from functions import plot_slab_shape, solve_slab_velocities
-###
+#Create the flat/upper slab coordinates, split into segments of gridwidth
+def slab_coordinates(thickness, length, gridwidth):
+    num_segments = int(length / gridwidth)  # Calculate the number of segments
+    print(num_segments)
+    segment_length = length / num_segments  # Calculate the length of each segment
 
-def create_slab_geometry(slab_thickness, radius_curvature, slab_depth, slab_dip, x_range, flat_range=500):
-	"""
-	Create an array with the geometry of a curved slab with specified dip, radius of curvature, slab depth, and thickness.
-	X is horizontal distance, y is vertical depth.
-	"""
-	# Convert slab dip to radians
-	slab_dip_rad = np.deg2rad(slab_dip)
+    coords = []  # List to store the coordinates
 
-	# Create x values for the flat and curved parts
-	x_values_flat = np.linspace(0, flat_range, num=500)
-	x_values_curved = np.linspace(flat_range, x_range + flat_range, num=1000)
+    for i in range(num_segments):
+        x1 = i * segment_length         # Calculate the x-coordinate of the bottom left corner
+        y1 = 0                          # y-coordinate of the bottom left corner
+        x2 = (i + 1) * segment_length   # x-coordinate of the bottom right corner
+        y2 = 0                          # y-coordinate of the bottom right corner
+        x3 = (i + 1) * segment_length   # x-coordinate of the top right corner
+        y3 = -thickness                 # y-coordinate of the top right corner
+        x4 = i * segment_length         # x-coordinate of the top left corner
+        y4 = -thickness                 # y-coordinate of the top left corner
 
-	# Calculate y values based on the geometry of the slab
-	y_values_flat = np.zeros_like(x_values_flat)
-	y_values_curved = (radius_curvature - np.sqrt(radius_curvature**2 - ((x_values_curved - flat_range) - slab_thickness / np.tan(slab_dip_rad))**2))
+        rectangle_coords = [(x1, y1), (x2, y2), (x3, y3), (x4, y4),(x1, y1)]  # Coordinates of the current rectangle
+        coords.append(rectangle_coords)                              # Add the coordinates to the list
 
-	# Calculate the normal to the curve
-	dx = np.gradient(x_values_curved)
-	dy = np.gradient(y_values_curved)
-	normals = np.vstack((-dy, dx))
-	normals /= np.linalg.norm(normals, axis=0)
-
-	# Create the additional slab profile at a constant profile-normal distance
-	x_values_curved_deeper = x_values_curved + slab_thickness * normals[0]
-	y_values_curved_deeper = y_values_curved + slab_thickness * normals[1]
-
-	# For the flat part, the normal points vertically downwards
-	x_values_flat_deeper = x_values_flat
-	y_values_flat_deeper = y_values_flat + slab_thickness
-
-	# Combine x and y values into a 2D array
-	x_values = np.concatenate((x_values_flat, x_values_curved, x_values_curved_deeper[::-1], x_values_flat_deeper[::-1], x_values_flat[0:1]))
-	y_values = np.concatenate((y_values_flat, y_values_curved, y_values_curved_deeper[::-1], y_values_flat_deeper[::-1], y_values_flat[0:1]))
-	slab_coords = np.vstack((x_values, y_values))
-
-	return slab_coords
+    return coords
 
 
-slab_coords = create_slab_geometry(100., 250., 500., 70., 1000.)
-
-def plot_slab(slab_coords):
-
-	plt.figure()
-	plt.plot(slab_coords[0], slab_coords[1])
-	plt.xlabel('Horizontal Distance')
-	plt.ylabel('Depth')
-	plt.title('Slab Geometry')
-	plt.gca().invert_yaxis()  # Invert y axis as depth increases downwards
-	plt.show()
-
-plot_slab(slab_coords)
+#The below function is currently super low resolution, needs to be fixed for circle plotting and arclength calculation
+#Create the curve coordinates, split into segments of gridangle and stopping at a given dip relative to the surface
+def semicircle_coords(thickness, length, radius, gridangle, dip):
+    #Y Value for radius of curvature center
+    radiuscurvey = -radius
+    #X Value for radius of curvature center
+    radiuscurvex = length
+    #Circumference segment in radians
 
 
+    circlecoords = []
+    connectpoint = []
+    num_segments_curve = int(dip/gridangle)
+    
+    for i in range(num_segments_curve):
+        x4 = radiuscurvex + radius * np.sin(math.radians(i * gridangle))  # same order: 1,2,3,4:bottomleft,bottomright,topright,topleft
+        y4 = -(radius - radius * np.cos(math.radians(i * gridangle)))  # 
+        x1 = radiuscurvex + (radius - thickness) * np.sin(math.radians(i * gridangle))
+        y1 = -(radius - (radius - thickness) * np.cos(math.radians(i * gridangle)))
+        x2 = radiuscurvex + (radius - thickness) * np.sin(math.radians((i + 1) * gridangle))
+        y2 = -(radius - (radius - thickness) * np.cos(math.radians((i + 1) * gridangle)))
+        x3 = radiuscurvex + radius * np.sin(math.radians((i + 1) * gridangle))
+        y3 = -(radius - radius * np.cos(math.radians((i + 1) * gridangle)))
+         
 
 
-
-# def solve_slab_velocities(...):
-# 	...
-# 	return(???)
-
-# def evolve_slab_geometry(slab_coords, slab_vels, dt_myrs):
-# 	slab_coords=1. # temp
-# 	return(slab_coords)
+        connectpoint.append((x2,y2))
+        circle_rec = [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]
+        circlecoords.append(circle_rec)
 
 
-# def plot_slab_shape(slab_coords, plot_filename):
-# 	pass
+    return  connectpoint, circlecoords
+    
+#Function to rotate and shift the dipping slab coordinates
+def rotateandshift_coordinates(connectpoint, coords, slab_dip):
+        rotated_coordinates = []
+        for x, y in coords:
+            # Convert angle to radians
+            angle_rad = math.radians(slab_dip)
+            
+            # Apply rotation formula
+            new_x = x * math.cos(angle_rad) + y * math.sin(angle_rad) +  connectpoint[len(connectpoint)-1][0]
+            new_y = -x * math.sin(angle_rad) + y * math.cos(angle_rad) +  connectpoint[len(connectpoint)-1][1]
+            
+            rotated_coordinates.append((new_x, new_y))
+        
+        return rotated_coordinates
+    
 
 
+#Create the dipping slab coordinates
+def dipping_slab_coordinates(connectpoint, thickness, slab_depth,slab_dip,gridwidth):
+        slab2length = ((slab_depth +  connectpoint[len(connectpoint)-1][1]) / np.sin(math.radians(slab_dip)))
+
+        
+        num_segments_slab = int(slab2length / gridwidth)  # Calculate the number of segments
+    
+        segment_length_slab = slab2length / num_segments_slab  # Calculate the length of each segment
+
+        coords2 = []  # List to store the coordinates
+
+        for i in range(num_segments_slab):
+          x1 = i * segment_length_slab        # Calculate the x-coordinate of the bottom left corner
+          y1 = 0                          # y-coordinate of the bottom left corner
+          x2 = (i+1) *  segment_length_slab   # x-coordinate of the bottom right corner
+          y2 = 0                           # y-coordinate of the bottom right corner
+          x3 = (i+1) *  segment_length_slab       # x-coordinate of the top right corner
+          y3 = thickness                 # y-coordinate of the top right corner
+          x4 = i * segment_length_slab         # x-coordinate of the top left corner
+          y4 = thickness                 # y-coordinate of the top left corner
+
+          rectangle_coords_slab = [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]  # Coordinates of the current rectangle
+          slab2_coords = rotateandshift_coordinates(connectpoint, rectangle_coords_slab, slab_dip)
+          coords2.append(slab2_coords)                              # Add the coordinates to the list
+          
+        return coords2
+       
+
+        
+#Plot the coordinates of the initial geometry
+def plot_slab_coordinates(coords, coords2,  circlecoords):
+    for rectangle_coords in coords:
+        x_coords = [coord[0] for coord in rectangle_coords]
+        y_coords = [coord[1] for coord in rectangle_coords]
+        plt.plot(x_coords, y_coords, 'b-')
+    for rotated_coords_slab in coords2:
+        x_coords_slab = [coord[0] for coord in rotated_coords_slab]
+        y_coords_slab = [coord[1] for coord in rotated_coords_slab]
+        plt.plot(x_coords_slab, y_coords_slab, 'b-')
+    for circle_rec in circlecoords:
+        x_coords_curve = [coord[0] for coord in circle_rec]
+        y_coords_curve = [coord[1] for coord in circle_rec]
+        plt.plot(x_coords_curve, y_coords_curve, 'b-')
+        
+  
+    plt.xlabel('Distance (km)')
+    plt.ylabel('Depth (km)')
+    plt.xlim(0, 400)
+    plt.ylim(-600, 10)  # Modified to plot Y axis downwards
+    plt.title('Slab Coordinates')
+    plt.grid(False)
+    plt.axis('equal')
+    plt.show()
 
 

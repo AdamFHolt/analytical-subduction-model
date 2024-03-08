@@ -34,6 +34,12 @@ dt_myrs             = 0.25     # Myrs
 plot_filename = 'plots/slab-shape.t%s.pdf' % 0
 # plot_slab_shape(slab_coords, plot_filename)
 
+#Test the functions
+coords = slab_coordinates(thickness=50,length=800, gridwidth=40)
+connectpoint,circlecoords = semicircle_coords(thickness=50,length=800, radius=250, gridangle=10, dip=60)
+plot_slab_coordinates(coords, dipping_slab_coordinates(connectpoint,thickness=50,slab_depth=400,slab_dip=60,gridwidth=40),  circlecoords)
+
+
 for i in range(nt):
 
     time_myrs = dt_myrs + (i * dt_myrs)
