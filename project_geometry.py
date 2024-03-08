@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import numpy as np
 import math
 import matplotlib.pyplot as plt
@@ -116,3 +117,14 @@ def generate_slab_geometry(thickness, length, gridwidth, radius,  dip, slab_dept
 # Test the combined function
 generate_slab_geometry(thickness=50, length=800, gridwidth=20, radius=250, dip=70, slab_depth=500)
 
+=======
+
+#Rough draft of initial geometry function.
+#To-do: 
+#-Increase resolution within the curve -> due to use of range function----done
+#-Add a dependency on slab_dip to the curve-----done
+#-Segment the curve and the dipping slab------done
+#Nest all these functions into one initial geometry function! 
+
+
+>>>>>>> main
