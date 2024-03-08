@@ -1,10 +1,8 @@
 #!/usr/bin/python3
 
-# from functions import initialize_slab_geometry, evolve_slab_geometry
-# from functions import plot_slab_shape, solve_slab_velocities
-
 import numpy as np
 import time, sys, os
+from functions import slab_coordinates, semicircle_coords, plot_slab_coordinates, dipping_slab_coordinates
 
 #################################
 # set geometric variables
@@ -30,27 +28,25 @@ dt_myrs             = 0.25     # Myrs
 #################################
 
 ##### set up initial slab shape
-# slab_coords = initialize_slab_geometry(slab_thickness,init_rad_curvature,init_slab_depth,init_slab_dip)
 plot_filename = 'plots/slab-shape.t%s.pdf' % 0
-# plot_slab_shape(slab_coords, plot_filename)
 
-#Test the functions
-coords = slab_coordinates(thickness=50,length=800, gridwidth=40)
+# generate slab coordinates:
+coords = slab_coordinates(thickness=50,length=800, gridwidth=20)
 connectpoint,circlecoords = semicircle_coords(thickness=50,length=800, radius=250, gridangle=10, dip=60)
-plot_slab_coordinates(coords, dipping_slab_coordinates(connectpoint,thickness=50,slab_depth=400,slab_dip=60,gridwidth=40),  circlecoords)
+plot_slab_coordinates(coords, dipping_slab_coordinates(connectpoint,thickness=50,slab_depth=400,slab_dip=60,gridwidth=20),  circlecoords)
 
 
-for i in range(nt):
+# for i in range(nt):
 
-    time_myrs = dt_myrs + (i * dt_myrs)
-    print("---------Solving at %.2f Myrs---------" % time_myrs)
+#     time_myrs = dt_myrs + (i * dt_myrs)
+#     print("---------Solving at %.2f Myrs---------" % time_myrs)
 
-    ##### solve
-    # slab_vels = solve_slab_velocities(... lots of variables ...)
+#     ##### solve
+#     # slab_vels = solve_slab_velocities(... lots of variables ...)
     
-    ##### evolve slab geometry using the velocity solution
-    # slab_coords = evolve_slab_geometry(slab_coords, slab_vels, dt_myrs)
+#     ##### evolve slab geometry using the velocity solution
+#     # slab_coords = evolve_slab_geometry(slab_coords, slab_vels, dt_myrs)
 
-    ##### plot new slab geometry
-    plot_filename = 'plots/slab-shape.t%s.pdf' % i
-    # plot_slab_shape(slab_coords, plot_filename)
+#     ##### plot new slab geometry
+#     plot_filename = 'plots/slab-shape.t%s.pdf' % i
+#     # plot_slab_shape(slab_coords, plot_filename)

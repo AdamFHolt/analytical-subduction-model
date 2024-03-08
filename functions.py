@@ -109,27 +109,33 @@ def dipping_slab_coordinates(connectpoint, thickness, slab_depth,slab_dip,gridwi
         
 #Plot the coordinates of the initial geometry
 def plot_slab_coordinates(coords, coords2,  circlecoords):
+    plt.figure(figsize=(10, 6))  # Set the figure size
+    # plt.style.use('seaborn-darkgrid')  # Use seaborn-darkgrid style
+    # plt.style.use('seaborn-darkgrid')  # Use seaborn-darkgrid style
     for rectangle_coords in coords:
         x_coords = [coord[0] for coord in rectangle_coords]
         y_coords = [coord[1] for coord in rectangle_coords]
-        plt.plot(x_coords, y_coords, 'b-')
+        plt.plot(x_coords, y_coords, 'b-', linewidth=2)  # Increase line width
+
     for rotated_coords_slab in coords2:
         x_coords_slab = [coord[0] for coord in rotated_coords_slab]
         y_coords_slab = [coord[1] for coord in rotated_coords_slab]
-        plt.plot(x_coords_slab, y_coords_slab, 'b-')
+        plt.plot(x_coords_slab, y_coords_slab, 'b-', linewidth=2)  # Increase line width
+
     for circle_rec in circlecoords:
         x_coords_curve = [coord[0] for coord in circle_rec]
         y_coords_curve = [coord[1] for coord in circle_rec]
-        plt.plot(x_coords_curve, y_coords_curve, 'b-')
-        
-  
-    plt.xlabel('Distance (km)')
-    plt.ylabel('Depth (km)')
+        plt.plot(x_coords_curve, y_coords_curve, 'b-', linewidth=2)  # Increase line width
+
+    plt.xlabel('Distance (km)', fontsize=14)  # Increase font size
+    plt.ylabel('Depth (km)', fontsize=14)  # Increase font size
     plt.xlim(0, 400)
     plt.ylim(-600, 10)  # Modified to plot Y axis downwards
-    plt.title('Slab Coordinates')
-    plt.grid(False)
+    plt.title('Slab Coordinates', fontsize=16)  # Increase font size
+    plt.grid(True)  # Show grid
     plt.axis('equal')
+    plt.tick_params(labelsize=12)  # Increase tick label size
+
     plt.show()
 
 
