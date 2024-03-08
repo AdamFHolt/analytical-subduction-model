@@ -49,13 +49,13 @@ a = 350e3 # km--> m  half-width of slab
 # set-up grids along the slab 
 xi = 0
 yi = np.linspace(0, a, 351, endpoint=True)
-print("yi-shape",yi.shape)
+#print("yi-shape",yi.shape)
 
 
 # set-up grids for whole domain
 x = np.linspace(-4*a, 4*a, int(8*a/1000)+1)
 y = np.linspace(0, 4*a, int(8*a/1000)+1)        #).reshape(-1,1)
-print("x-shape",x.shape,"y-shape", y.shape)
+#print("x-shape",x.shape,"y-shape", y.shape)
 
 
 
@@ -63,20 +63,20 @@ print("x-shape",x.shape,"y-shape", y.shape)
 matrix_C = np.zeros_like(yi)
 matrix_C[:] = (Vr - ( Vt + Vm )/2 )  * 12 * viscosity / (lam **2)
 matrix_C = matrix_C.reshape(-1,1)
-print(matrix_C.shape, matrix_C)
+#print(matrix_C.shape, matrix_C)
 
 
 matrix_B = np.zeros((len(yi), len(yi)))
 for i in range(len(yi)):
     for j in range(len(yi)):
         matrix_B[i, j] =   - ((yi[i] - yi[j])**2) / (yi[i] - yi[j])**2
-print(matrix_B, matrix_B.shape)
+#print(matrix_B, matrix_B.shape)
 matrix_B = np.nan_to_num(matrix_B)
 
 
 
 matrix_A = solve(matrix_B,matrix_C)
-print(matrix_A.shape,matrix_A)
+#print(matrix_A.shape,matrix_A)
 
 array_A = matrix_A.reshape(len(matrix_A[:,0]))  # transform from list to array, to avoid format warning from python
 
@@ -87,7 +87,7 @@ Pressure = np.zeros((len(x), len(y)))
 
 
 
-print(array_A)
+#print(array_A)
 @jit(nopython=True)
 def calculate_pressure(x, y, yi, array_A,xi):
     Pressure = np.zeros((len(x), len(y)))
@@ -101,7 +101,7 @@ def calculate_pressure(x, y, yi, array_A,xi):
 
 Pressure = calculate_pressure(x, y, yi, array_A,xi)
 
-print(Pressure.shape, Pressure)
+#print(Pressure.shape, Pressure)
 """
 
 for p in range(len(x)):
@@ -118,7 +118,7 @@ for p in range(len(x)):
 """
 
 T2=time.time()
-print(T2-T1)
+#print(T2-T1)
 
 #
 # plot the pressure field
