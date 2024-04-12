@@ -7,13 +7,13 @@ import matplotlib.pyplot as plt
 
 #################################
 # set geometric variables
-slab_thickness      = 100.    # km
+slab_thickness      = 100.e3    # m
 init_slab_dip       = 40.     # deg
-init_slab_depth     = 500     # km
-op_thickness        = 50.     # km
-ymax                = 660.    # km
-xmax                = 3000.   # km
-xsp                 = 1000.    # km, where does the slab starts
+init_slab_depth     = 500.e3     # m
+op_thickness        = 50.e3    # m
+ymax                = 660.e3    # m
+xmax                = 3000.e3   # m
+xsp                 = 1000.e3    # m, where does the slab starts
 #################################
 # set mechanical variables
 slab_density        = 3400.    # kg/m3    
@@ -25,12 +25,15 @@ lith_rigidity       = 10**19   # N m
 g                   = 9.81     # m/s2
 ################################
 # trench velocity and far_field pressure
-vt                  = -5.e-2    # m/yr
+vt_yr                  = -5.e-2    # m/yr
+yr                     = 3.15e7    # s
+vt                     = vt_yr/yr # m/s
+P                      = 70.e6      # Pa`
 #################################
 
 ##### set up arrays
 ys = np.linspace(0, init_slab_depth, 100) # slab chunks y coordinates
-xs = ys/np.tan(np.radians(init_slab_dip)) # slab chunks x coordinates
+xs = ys/np.tan(np.radians(init_slab_dip))+xsp # slab chunks x coordinates
 ro = abs(ys/np.sin(np.radians(init_slab_dip))) # distance from trench
 theta = np.linspace(0, init_slab_dip, 100) # angle from trench
 vn = np.zeros(len(ys)) # normal velocity
@@ -38,9 +41,7 @@ vs = np.zeros(len(ys)) # shear velocity
 s = np.zeros(len(ro)) # slab chunks depth
 dsn = np.zeros(len(ys)) # normal stress gradient
 ts = np.zeros(len(ys)) # shear stress on slab top
-tt = np.zeros(len(ys)) # shear stress at theta = 0
-vr = np.zeros((len(ys), len(theta))) # radial velocity
-vtheta = np.zeros((len(ys), len(theta))) # theta velocity
+sigma_n = np.zeros(len(ys)) # normal stress
 
 s = ro.max() - ro
 ds = ro.max()/len(ro)
@@ -52,8 +53,8 @@ ds = ro.max()/len(ro)
 # plt.legend()
 # plt.show()
 
-# vn[:] = vt * np.sin(np.radians(init_slab_dip))        # m/yr
-# vs[:] = -vt * np.cos(np.radians(init_slab_dip))        # m/yr
+vn[:] = vt * np.sin(np.radians(init_slab_dip))        # m/yr
+vs[:] = -vt * np.cos(np.radians(init_slab_dip))        # m/yr
 
 ## initialize summation variable
 sum = 0
@@ -62,25 +63,34 @@ for i in range(len(ys)):
         sum += vn[i]*s[i]
         dsn[i] = -((12*asthen_visc)/(ro[i]**3 * init_slab_dip**3))*(sum) + ((6*asthen_visc*(vs[i]+vt))/(ro[i]**2 * init_slab_dip**2))
         ts[i] = -(ro[i]*init_slab_dip*dsn[i]) + ((asthen_visc*(vt-vs[i]))/(ro[i]*init_slab_dip))
-        # tt[i] = ((asthen_visc*(vt-vs[i]))/(ro[i]*init_slab_dip)) + ((ro[i]*init_slab_dip)/2)*dsn[i]
-        # for j in range(len(theta)):
-        #     vr[i] = -(ro[i]**2 * init_slab_dip**2)/2 * dsn[i] + tt[i]*ro[i]*theta[j] - vt
 
-plt.plot(dsn/1e9, ys, 'k', label = 'Normal stress gradient')
-plt.plot(ts/1e9, ys, 'r', label = 'Shear stress on slab top')
-plt.ylim(ymax, 0)
-# plt.xlim(-0.1, 1e7)
+dsn = np.nan_to_num(dsn)
+integ = 0
+
+
+for j in range(len(dsn)):
+        integ = integ + dsn[j]*s[j]
+        sigma_n[j] = P + integ
+
+# plt.plot(dsn/1e6, ys, 'k', label = 'Normal stress gradient')
+plt.plot(ts/1e6, ys/1e3, 'r', label = 'Shear stress on slab top')
+plt.plot(sigma_n/1e6, ys/1e3, 'b', label = 'Normal stress')
+plt.ylim(ymax/1e3, 0)
+# plt.xlim(0, 6)
 plt.ylabel('Depth (km)')
 plt.legend()
-plt.show()
+plt.xlabel('Stress (MPa)')
+plt.savefig('slab_top_shear_stress.png', dpi = 1000)
+plt.close()
+
 
 
 ##### plot slab position
-plt.plot(xs, ys, 'k')
-plt.xlim(0, xmax)
-plt.ylim(ymax, 0)
+plt.plot(xs/1e3, ys/1e3, 'k')
+plt.xlim(0, xmax/1e3)
+plt.ylim(ymax/1e3, 0)
 plt.gca().set_aspect('equal')
-plt.savefig('poloidal_slab_position.png')
+plt.savefig('poloidal_slab_position.png', dpi = 1000)
 plt.close()
 
 
