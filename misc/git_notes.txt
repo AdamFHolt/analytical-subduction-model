@@ -6,6 +6,9 @@ git init  # (inside the created directory)
 # check status of repo files
 git status
 
+# set remote access via a token (which is created on https://github.com/settings/tokens):
+git remote set-url origin https://username:token@github.com/username/repository.git
+
 ### EDITING FILES IN YOUR REPOSITORY
 # add file to staging area (e.g., for "driver.py")
 git add driver.py
