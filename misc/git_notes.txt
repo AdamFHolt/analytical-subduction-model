@@ -9,8 +9,12 @@ git status
 ### EDITING FILES IN YOUR REPOSITORY
 # add file to staging area (e.g., for "driver.py")
 git add driver.py
-# add all files
-git add .git push -u origin main
+# add all files in current directory
+git add .
+# add all files recursively
+git add --alll
+# push it to the main branch
+git push -u origin main
 # remove file from staging area
 git rm --cached driver.py
 # why have a git staging area?
